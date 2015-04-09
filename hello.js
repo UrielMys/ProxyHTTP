@@ -23,7 +23,6 @@ var server=http.createServer(function (browserRequest, browserResponse) {
   	textoApi+=datos;
   });
   apiResponse.on('end',function(){ //cierro la conxion con la api
-  	if(apiResponse.statusCode=='404'){
   		try {
   			JSON.parse(textoApi);
 } catch (e) {
@@ -31,7 +30,7 @@ var server=http.createServer(function (browserRequest, browserResponse) {
   textoApi='{"error":"not found"}'
 }
 	
-  	}
+  	
   	browserResponse.writeHead(apiResponse.statusCode, {'Content-Type': 'application/json'}); 
   	browserResponse.end(textoApi);//cierro la conexion con el browser
   });
