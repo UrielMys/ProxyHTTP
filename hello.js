@@ -3,7 +3,6 @@ var https = require('https');
 var url = require('url');
 
 var server=http.createServer(function (browserRequest, browserResponse) {
-  console.log(browserRequest.headers)
   var options = {
   host: 'api.mercadolibre.com',
   path: url.parse(browserRequest.url).path,
@@ -24,7 +23,16 @@ var server=http.createServer(function (browserRequest, browserResponse) {
   	textoApi+=datos;
   });
   apiResponse.on('end',function(){ //cierro la conxion con la api
-  	browserResponse.writeHead(200, {'Content-Type': 'application/json'}); 
+  	if(apiResponse.statusCode=='404'){
+  		try {
+  			JSON.parse(textoApi);
+} catch (e) {
+  // An error has occured, handle it, by e.g. logging it
+  textoApi='{"error":"not found"}'
+}
+	
+  	}
+  	browserResponse.writeHead(apiResponse.statusCode, {'Content-Type': 'application/json'}); 
   	browserResponse.end(textoApi);//cierro la conexion con el browser
   });
 });
