@@ -1,8 +1,2 @@
-var data = '';
-req
-  .on('data', function(chunk) {
-    data += chunk;
-  })
-  .on('end', function() {
-    console.log('POST data: %s', data);
-  })
+var proxy = require('./proxyCreator.js');
+proxy();
