@@ -4,7 +4,7 @@ var url = require('url');
 var serverPort;
 var redis = require('redis');
 var client = redis.createClient();
-
+var restrictions= require('./restrictions');
 client.on('connect',function(){
 	console.log('se conecto a la base de datos')
 });
@@ -35,26 +35,45 @@ var createProxy=function(configurations){
 	});
 	server.listen(serverPort || 8124);
 	function checkPossibleConnection(request,response,options){																		//cant params,lugar a incrementar,tiempo de expiracion
-		client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,"visits",10,function(err,reply){
-		//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
-		//TODO que corresponda la key a lo que tiene que ser
-		if(!err){
-			//codigo correspondiente a un guardado exitoso
-			console.log(reply)
-		}else{
-			//codigo correspondiente a un guardado erroneo
-			console.log(err)
-		}
-	});
-	client.sismember('ipFilter',request.connection.remoteAddress,function(err,reply){
-		console.log(reply);
-		if(reply==1){
-			sendForbidden(response);
-		}else{
-			makeRequest(request,response,options);
+		var isAccepted=true;
+		var deniers=restrictions.filter(function(restriction){
+
+			isAccepted=isAccepted&&!(restriction.deniesRequest(request)&&(restriction.times==0));
+			return restriction.deniesRequest(request);
+		});
+		console.log(isAccepted)
+		if(isAccepted){
+
 			
-		}
+		deniers.forEach(function(restriction,index){
+			
+			client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,restriction.generateRegister(),restriction.interval+1,function(err,reply){
+			//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
+			//TODO que corresponda la key a lo que tiene que ser
+			if(!err){
+				console.log(reply)
+				console.log(restriction.times)
+				if(isAccepted&&reply>restriction.times ){
+					isAccepted=false;
+					console.log("rejected");
+					sendForbidden(response);
+				}else{
+					
+				}
+				//codigo correspondiente a un guardado exitoso
+				//console.log(reply)
+			}else{
+				//codigo correspondiente a un guardado erroneo
+				console.log(err)
+			}
+			
+		});
+
 	});
+	}else{
+		sendForbidden(response);
+	}
+	
 	}
 	function makeRequest(browserRequest,browserResponse,options){
 
