@@ -41,41 +41,41 @@ var createProxy=function(configurations){
 	function checkPossibleConnection(request,response,options){																		//cant params,lugar a incrementar,tiempo de expiracion
 		var isAccepted=true;
 		var deniers=restrictions.filter(function(restriction){
-			console.log(restriction.generateRegister());
+			//console.log(restriction.generateRegister());
 			isAccepted=isAccepted&&!(restriction.deniesRequest(request)&&(restriction.times==0));
 			return restriction.deniesRequest(request);
 		});
-		console.log(isAccepted)
+		//console.log(isAccepted)
 		var possible=deniers.length;
-		console.log(possible);
+		//console.log(possible);
 		if(isAccepted){
 			if(possible>0){	
 			
 		deniers.forEach(function(restriction,index){
-			console.log("haciendo request para "+ restriction.generateRegister);			
+			//console.log("haciendo request para "+ restriction.generateRegister);			
 			client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,restriction.generateRegister(),restriction.interval+1,function(err,reply){
 			//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
 			
 			if(!err){
-				console.log(reply + " devolvio")
-				console.log(restriction.times + " restricciones")
+				//console.log(reply + " devolvio")
+				//console.log(restriction.times + " restricciones")
 				if(isAccepted&&reply>restriction.times ){
 					isAccepted=false;
-					console.log("rejected");
+					//console.log("rejected");
 					sendForbidden(response);
 				}else{
 					possible--;
-					console.log('quedan ' +possible)
+					//console.log('quedan ' +possible)
 					if(possible==0){
-						console.log("making request")
+						//console.log("making request")
 						makeRequest(request,response,options);
 					}
 				}
 				//codigo correspondiente a un guardado exitoso
-				////console.log(reply)
+				//console.log(reply)
 			}else{
 				//codigo correspondiente a un guardado erroneo
-				console.log(err)
+				//console.log(err)
 			}
 			
 		});
@@ -95,14 +95,14 @@ var createProxy=function(configurations){
   		apiResponse.pipe(browserResponse); //fuerzo a que todo lo que se recibe de la api vaya al browser
   		browserResponse.writeHead(apiResponse.statusCode,apiResponse.headers); //se asegura que le lleguen los headers al browser
 
-  		////console.log(request.url)
-  		////console.log(request.connection.remoteAddress) //ip que origina la conexion
+  		//////console.log(request.url)
+  		//////console.log(request.connection.remoteAddress) //ip que origina la conexion
 	});
   	browserRequest.pipe(apiRequest); //manda los elementos de un put/post del browser a la api
   	apiRequest.end();	
 	}
 	function sendForbidden(response){ //no le permite el acceso al usuario
-		//console.log('forbidden \n');
+		////console.log('forbidden \n');
 		response.writeHead(403,{'Content-Type':'text/plain'});
 		response.end('forbidden');
 	}
