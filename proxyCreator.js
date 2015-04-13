@@ -45,27 +45,28 @@ var createProxy=function(configurations){
 			isAccepted=isAccepted&&!(restriction.deniesRequest(request)&&(restriction.times==0));
 			return restriction.deniesRequest(request);
 		});
-		//console.log(isAccepted)
+		console.log(isAccepted)
 		var possible=deniers.length;
-		//console.log(possible);
+		console.log("there are "+possible+" deniers");
 		if(isAccepted){
 			if(possible>0){	
 			
 		deniers.forEach(function(restriction,index){
-			//console.log("haciendo request para "+ restriction.generateRegister);			
+//			console.log(restriction);
+			console.log("haciendo request para "+ restriction.generateRegister());			
 			client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,restriction.generateRegister(),restriction.interval+1,function(err,reply){
 			//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
 			
 			if(!err){
-				//console.log(reply + " devolvio")
+				console.log(reply + " devolvio")
 				//console.log(restriction.times + " restricciones")
 				if(isAccepted&&reply>restriction.times ){
 					isAccepted=false;
-					//console.log("rejected");
+					console.log("rejected");
 					sendForbidden(response);
 				}else{
 					possible--;
-					//console.log('quedan ' +possible)
+					console.log('quedan ' +possible)
 					if(possible==0){
 						//console.log("making request")
 						makeRequest(request,response,options);
