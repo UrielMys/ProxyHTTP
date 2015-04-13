@@ -3,12 +3,16 @@ var https = require('https');
 var url = require('url');
 var serverPort;
 var redis = require('redis');
-var client = redis.createClient();
+var client = redis.createClient(6379,'uriel.mzzdk2.0001.usw2.cache.amazonaws.com');
 var restrictions= require('./restrictions');
 client.on('connect',function(){
-	console.log('se conecto a la base de datos')
+	console.log('conectando a la base de datos');
 });
-client.on('error',function(){
+client.on('ready',function(){
+	console.log('db lista para transmitir');
+});
+client.on('error',function(error){
+	console.log(error);
 	console.log('hubo un error con la base de datos')
 });
 var restrictions = require('./restrictions.js');
@@ -37,31 +41,32 @@ var createProxy=function(configurations){
 	function checkPossibleConnection(request,response,options){																		//cant params,lugar a incrementar,tiempo de expiracion
 		var isAccepted=true;
 		var deniers=restrictions.filter(function(restriction){
-
+			console.log(restriction.generateRegister());
 			isAccepted=isAccepted&&!(restriction.deniesRequest(request)&&(restriction.times==0));
 			return restriction.deniesRequest(request);
 		});
-		//console.log(isAccepted)
+		console.log(isAccepted)
+		var possible=deniers.length;
 		if(isAccepted){
-			var possible=deniers.length;		
+			if(possible>0){	
 			
 		deniers.forEach(function(restriction,index){
-			
+			console.log("haciendo request para "+ restriction.generateRegister);			
 			client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,restriction.generateRegister(),restriction.interval+1,function(err,reply){
 			//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
-			//TODO que corresponda la key a lo que tiene que ser
+			
 			if(!err){
-				//console.log(reply + " devolvio")
-				//console.log(restriction.times + " restricciones")
+				console.log(reply + " devolvio")
+				console.log(restriction.times + " restricciones")
 				if(isAccepted&&reply>restriction.times ){
 					isAccepted=false;
-					//console.log("rejected");
+					console.log("rejected");
 					sendForbidden(response);
 				}else{
 					possible--;
-					//console.log('quedan ' +possible)
+					console.log('quedan ' +possible)
 					if(possible==0){
-						//console.log("making request")
+						console.log("making request")
 						makeRequest(request,response,options);
 					}
 				}
@@ -69,12 +74,15 @@ var createProxy=function(configurations){
 				////console.log(reply)
 			}else{
 				//codigo correspondiente a un guardado erroneo
-				//console.log(err)
+				console.log(err)
 			}
 			
 		});
 
 	});
+		}else{
+			makeRequest(request,response,options);
+		}
 	}else{
 		sendForbidden(response);
 	}

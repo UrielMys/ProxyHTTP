@@ -19,7 +19,7 @@ function Restriction () {
 		return false;
 	}
 	this.deniesRequest=function(request){
-		return this.deniesIpOrPath(request.connection.remoteAddress,request.url)
+		return this.deniesIpAndPath(request.connection.remoteAddress,request.url)
 	}
 	this.deniesIpAndPath=function(ip,dest){
 		return this.deniesIp(ip)&& this.deniesPath(dest)
@@ -32,12 +32,13 @@ function Restriction () {
 }
 
 var restriction1 = new Restriction();
-restriction1.ip={deny:'202.42.23.2'}; //restriccion directa a la ip
-
+restriction1.ip={deny:'20.42.23.2'}; //restriccion directa a la ip
+restriction1.times=80;
+restriction1.interval=15;
 
 var restriction2 = new Restriction();
 restriction2.dest={deny:/^\/sites\/.*$/};
-restriction2.times=2;
+restriction2.times=20;
 restriction2.interval=60;
 var restriction3=new Restriction();
 restriction3.ip={deny:'200.42.23.2'};
