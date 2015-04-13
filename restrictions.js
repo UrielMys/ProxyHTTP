@@ -19,7 +19,13 @@ function Restriction () {
 		return false;
 	}
 	this.deniesRequest=function(request){
-		return this.deniesIpAndPath(request.connection.remoteAddress,request.url)
+		if(this.ip&&this.port&&this.ip.deny&&this.port.deny){
+			return this.deniesIpAndPath(request.connection.remoteAddress,request.url)
+		}
+		if(this.ip&&this.ip.deny){
+			return this.deniesIp(request.connection.remoteAddress);
+		}
+		return this.deniesPath(request.url);
 	}
 	this.deniesIpAndPath=function(ip,dest){
 		return this.deniesIp(ip)&& this.deniesPath(dest)
@@ -41,7 +47,7 @@ restriction2.dest={deny:/^\/sites\/.*$/};
 restriction2.times=20;
 restriction2.interval=60;
 var restriction3=new Restriction();
-restriction3.ip={deny:'200.42.23.2'};
+restriction3.ip={deny:'202.42.23.2'};
 restriction3.dest={deny:/^\/sites\/.*$/}
-
+restriction3.times=300;
 module.exports=[restriction1,restriction2,restriction3];

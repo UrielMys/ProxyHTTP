@@ -47,6 +47,7 @@ var createProxy=function(configurations){
 		});
 		console.log(isAccepted)
 		var possible=deniers.length;
+		console.log(possible);
 		if(isAccepted){
 			if(possible>0){	
 			
