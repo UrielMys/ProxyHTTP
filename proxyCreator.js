@@ -41,9 +41,9 @@ var createProxy=function(configurations){
 			isAccepted=isAccepted&&!(restriction.deniesRequest(request)&&(restriction.times==0));
 			return restriction.deniesRequest(request);
 		});
-		console.log(isAccepted)
+		//console.log(isAccepted)
 		if(isAccepted){
-
+			var possible=deniers.length;		
 			
 		deniers.forEach(function(restriction,index){
 			
@@ -51,20 +51,25 @@ var createProxy=function(configurations){
 			//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
 			//TODO que corresponda la key a lo que tiene que ser
 			if(!err){
-				console.log(reply)
-				console.log(restriction.times)
+				//console.log(reply + " devolvio")
+				//console.log(restriction.times + " restricciones")
 				if(isAccepted&&reply>restriction.times ){
 					isAccepted=false;
-					console.log("rejected");
+					//console.log("rejected");
 					sendForbidden(response);
 				}else{
-					
+					possible--;
+					//console.log('quedan ' +possible)
+					if(possible==0){
+						//console.log("making request")
+						makeRequest(request,response,options);
+					}
 				}
 				//codigo correspondiente a un guardado exitoso
-				//console.log(reply)
+				////console.log(reply)
 			}else{
 				//codigo correspondiente a un guardado erroneo
-				console.log(err)
+				//console.log(err)
 			}
 			
 		});
@@ -81,14 +86,14 @@ var createProxy=function(configurations){
   		apiResponse.pipe(browserResponse); //fuerzo a que todo lo que se recibe de la api vaya al browser
   		browserResponse.writeHead(apiResponse.statusCode,apiResponse.headers); //se asegura que le lleguen los headers al browser
 
-  		//console.log(request.url)
-  		//console.log(request.connection.remoteAddress) //ip que origina la conexion
+  		////console.log(request.url)
+  		////console.log(request.connection.remoteAddress) //ip que origina la conexion
 	});
   	browserRequest.pipe(apiRequest); //manda los elementos de un put/post del browser a la api
   	apiRequest.end();	
 	}
 	function sendForbidden(response){ //no le permite el acceso al usuario
-		console.log('forbidden');
+		//console.log('forbidden \n');
 		response.writeHead(403,{'Content-Type':'text/plain'});
 		response.end('forbidden');
 	}
