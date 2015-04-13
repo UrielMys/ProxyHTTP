@@ -8,7 +8,7 @@ function Restriction () {
 	};
 	this.deniesIp=function(incomingIP){
 		if(incomingIP){
-			return (this.ip.deny?incomingIP.match(this.ip.deny):false) && !(this.ip.allow?incomingIP.match(this.ip.allow):false);
+			return ((this.ip.deny?incomingIP.match(this.ip.deny):false) && !(this.ip.allow?incomingIP.match(this.ip.allow):false));
 		}
 		return false;
 	} //lo niega si esta negado y no esta explicitamente puesto en permitidos, si no tiene alguno de los campos, se asume que ese campo no molesta
