@@ -4,7 +4,7 @@ var url = require('url');
 var serverPort;
 var redis = require('redis');
 var client = redis.createClient();
-var restrictions= require('./restrictions');
+var restrictions= require('./restrictions').restrictions;
 client.on('connect',function(){
 	console.log('conectando a la base de datos');
 });
@@ -52,7 +52,7 @@ var createProxy=function(configurations){
 
 				deniers.forEach(function(restriction,index){
 					console.log("haciendo request para "+ restriction.generateRegister());			
-					client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,restriction.generateRegister(),restriction.interval+1,function(err,reply){
+					client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,restriction.generateRegister(),restriction.interval,function(err,reply){
 			//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
 			
 			if(!err){
