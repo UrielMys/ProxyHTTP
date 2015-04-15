@@ -4,7 +4,8 @@ var url = require('url');
 var serverPort;
 var redis = require('redis');
 var client = redis.createClient();
-var restrictions= require('./restrictions').restrictions;
+var restrict= require('./restrictions');
+var restrictions=restrict.restrictions;
 client.on('connect',function(){
 	console.log('conectando a la base de datos');
 });
@@ -15,7 +16,6 @@ client.on('error',function(error){
 	console.log(error);
 	console.log('hubo un error con la base de datos')
 });
-var restrictions = require('./restrictions.js');
 var createProxy=function(configurations){
 
 	var server=http.createServer(function (browserRequest, browserResponse) {
@@ -40,6 +40,7 @@ var createProxy=function(configurations){
 	server.listen(serverPort || 8124);
 	function checkPossibleConnection(request,response,options){																		//cant params,lugar a incrementar,tiempo de expiracion
 		var isAccepted=true;
+		//console.log(restrictions)
 		var deniers=restrictions.filter(function(restriction){
 			//console.log(restriction.generateRegister());
 			isAccepted=isAccepted&&!(restriction.deniesRequest(request)&&(restriction.times==0));
@@ -64,36 +65,34 @@ var createProxy=function(configurations){
 					client.incr("rejected");
 					sendForbidden(response);
 				}else{
-					possible--;
-					console.log('quedan ' +possible)
-					if(possible==0){
-						console.log("making request"+request.url);
-						makeRequest(request,response,options);
-					}
+					conditionsPassed(request,response,options,possible)
 				}
 				//codigo correspondiente a un guardado exitoso
 				//console.log(reply)
 			}else{
 				//codigo correspondiente a un guardado erroneo
 				console.log(err)
-				possible--;
-					console.log('quedan ' +possible)
-					if(possible==0){
-						console.log("making request"+request.url);
-						makeRequest(request,response,options);
-					}
+				conditionsPassed(request,response,options,possible)
 			}
 			
 		});
 
-				});
+});
 }else{
-	makeRequest(request,response,options);
+	makeRequest(request,response,options); //hay 0 restricciones posibles
 }
 }else{
-	sendForbidden(response);
+	sendForbidden(response); //tenian blockeado del todo el elemento
 }
 
+}
+function conditionsPassed(request,response,options,possible){
+	possible--;
+	console.log('quedan ' +possible)
+	if(possible==0){
+		console.log("making request"+request.url);
+		makeRequest(request,response,options);
+	}
 }
 function makeRequest(browserRequest,browserResponse,options){
 

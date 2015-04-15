@@ -62,21 +62,24 @@ function Rule(){
 var rule1 = new Rule();
 rule1.deny('200.42.23.2');
 var rule2=new Rule();
-rule2.deny(/^\/sites\/.*$/);
+rule2.deny(/^\/sites.*$/);
+var rule3=new Rule();
+rule3.deny(/^\/sites.*$/);
+rule3.deny(/^\/items.*$/);
 var restriction1 = new Restriction();
 restriction1.denyIP('200.42.23.2'); //restriccion directa a la ip
 restriction1.times=80;
 restriction1.interval=15;
 
 var restriction2 = new Restriction();
-restriction2.denyPath(/^\/sites\/.*$/);
+restriction2.denyPath(/^\/sites.*$/);
 restriction2.times=2000;
 restriction2.interval=60;
 var restriction3=new Restriction();
 restriction3.denyIP('200.42.23.2');
-restriction3.denyPath(/^\/sites\/.*$/);
+restriction3.denyPath(/^\/sites.*$/);
 restriction3.times=300;
 module.exports.restrictions=[restriction1,restriction2,restriction3];
-module.exports.getRules=[rule1,rule2];
+module.exports.getRules=[rule1,rule2,rule3];
 module.exports.Rule=Rule;
 module.exports.Restriction=Restriction;

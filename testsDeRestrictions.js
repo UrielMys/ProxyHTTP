@@ -19,7 +19,12 @@ assert(rules[0].matchesRestriction('200.42.23.2'));
 assert(!rules[0].matchesRestriction("/sites/hello"));
 assert(!rules[1].matchesRestriction('200.42.23.2'));
 assert(rules[1].matchesRestriction("/sites/hello"));
+assert(!rules[2].matchesRestriction('200.42.23.2'));
+assert(rules[2].matchesRestriction("/sites/hello"));
 console.log("all rules test passed");
 restrictions.forEach(function(element){
 	console.log(element.generateRegister())
+})
+rules.forEach(function(element){
+	console.log(element.getRule())
 })
