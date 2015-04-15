@@ -6,6 +6,7 @@ var redis = require('redis');
 var client = redis.createClient();
 var restrict= require('./restrictions');
 var restrictions=restrict.restrictions;
+var databaseService=require('./databaseService')
 client.on('connect',function(){
 	console.log('conectando a la base de datos');
 });
@@ -16,6 +17,13 @@ client.on('error',function(error){
 	console.log(error);
 	console.log('hubo un error con la base de datos')
 });
+setInterval(function(){
+	databaseService.refreshRestrictions();
+	setTimeout(function(){
+		restrictions=databaseService.getRestrictions;
+		console.log('traidas las nuevas restricciones')
+	},1000);
+},1000*60*2) //trae cada 2 minutos las nuevas restricciones
 var createProxy=function(configurations){
 
 	var server=http.createServer(function (browserRequest, browserResponse) {
@@ -55,7 +63,8 @@ var createProxy=function(configurations){
 					console.log("haciendo request para "+ restriction.generateRegister());			
 					client.eval('if redis.call("incr",KEYS[1])==1 then \n redis.call("expire",KEYS[1],KEYS[2]) \n  end  \n return redis.call("get",KEYS[1]) ',2,restriction.generateRegister(),restriction.interval,function(err,reply){
 			//evalua si es la primera vez q se incerta esa key incrementandola, si es 1 (era 0 antes), le avisa que la expire
-			
+			console.log('veces: '+restriction.times)
+			console.log('interval '+ restriction.interval)
 			if(!err){
 				console.log(reply + " devolvio")
 				//console.log(restriction.times + " restricciones")
@@ -72,6 +81,7 @@ var createProxy=function(configurations){
 			}else{
 				//codigo correspondiente a un guardado erroneo
 				console.log(err)
+				console.log(restriction.ip.denied)
 				conditionsPassed(request,response,options,possible)
 			}
 			
